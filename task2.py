@@ -87,6 +87,66 @@ class MyDecisionTreeClassifier:
             total_el_num = gr_1_elem_num + gr_2_elem_num
             final_gini = (gr_1_elem_num/total_el_num)*group_1_gini + (gr_2_elem_num/total_el_num)*group_2_gini
             return final_gini
+
+
+    def split_data(self, X, y):
+        """
+        Function defines the best split
+        returns the spli index and a threshold value
+        """
+        chosen_thr, chosen_feature = None, None
+        start_gini = 1 # set it to the high value only to reduce it eventually
+        # for idx, row in df.iterrows():
+        transposed_dataframe = X.T
+        for idx in range (len(transposed_dataframe)):
+            # chosen feature = transposed_dataframe[idx]
+            # from [[5.1 3.5 1.4 0.2]
+               #     [4.9 3.  1.4 0.2]
+                 #   [4.7 3.2 1.3 0.2]
+                  #  [4.6 3.1 1.5 0.2]
+                  #  [5.  3.6 1.4 0.2]]
+            # we take (0:) [5.1 4.9 4.7 4.6 5. ] and so on
+
+            # the principle of this part is searching the best gini value
+            # the logic is quite simple: we set gini to max of 1,
+            # if we can find lower gini - set it as the desirable output;
+            # repeat those steps, until all variations of gini are checked 
+            used_features = set()
+            used = []
+            changed_ls = [x for x in transposed_dataframe[idx] if x not in used and used.append(x)]
+            # set as high as 1 to change that later
+            gini_minim = 1
+            for datum in changed_ls:  # checking data one by one in transposed frame
+                if datum in used_features:
+                    continue # we have already discovered this one, continue iterating
+                bool_dataframe = X[:,idx] < datum # divide our dataset into 2 groups;
+                part_1 = X[bool_dataframe]
+                part_2 = X[~bool_dataframe]
+                dict_1 = {}
+                dict_2 = {}
+                for elem in part_1:
+                    if elem[idx] in dict_1:
+                        dict_1[elem[idx]] += 1
+                    else:
+                        dict_1[elem[idx]] = 1
+                for elem in part_2:
+                    if elem[idx] in dict_2:
+                        dict_2[elem[idx]] += 1
+                    else:
+                        dict_2[elem[idx]] = 1
+                total_ls = [dict_1, dict_2]
+                curr_gini = self.gini(total_ls, y)
+                if curr_gini <= gini_minim:
+                    gini_minim, threshold = curr_gini, datum # change our minimal value to better of a current gini,
+                                                                # remember threshold to return it later
+                used_features.add(datum)
+
+            if curr_gini <= start_gini:
+                start_gini = curr_gini # we replace the start gini with the best one evntually
+                chosen_feature = idx
+                chosen_thr = threshold
+        return chosen_feature, chosen_thr, start_gini
+
           
     def build_tree(self, X, y, depth=0):
             """
