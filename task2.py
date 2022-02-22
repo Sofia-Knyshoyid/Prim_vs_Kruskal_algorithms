@@ -198,3 +198,22 @@ class MyDecisionTreeClassifier:
                     # perhaps, it can be a leaf; in this case, no adjustments are made, the node is returned as it is
                     # recursion in previous call will ensure building the other branches until the end of process
             return chosen_vertex
+
+
+    def fit(self, X, y):
+       
+        # basically wrapper for build tree
+        self.tree_ = self.build_tree(X, y)
+        
+    def predict(self, X_test):
+        predictions=[]
+        for i in X_test:
+            node = self.tree_
+            while node.left:
+                if i[node.node_split_idx] < node.node_thr:
+                    node = node.left
+                else:
+                    node = node.right
+            predictions.append(node.chosen_class)
+        return predictions
+
